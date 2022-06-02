@@ -1,0 +1,1 @@
+- an ADT() type constructor with built-in toPlain and fromPlain and other things
