@@ -46,6 +46,11 @@ class Endog {
     return +this.getTime(event);
   }
 
+  hasValidTime(event) {
+    const time = this.getTime(event);
+    return time instanceof Date && !isNaN(time);
+  }
+
 
   /*
 
@@ -60,7 +65,17 @@ class Endog {
 
     // This is not memory-efficient! Should read the file lazily
     // Assumption: eventlog is in chronological order
-    const events = fs.readFileSync(this.logloc).toString().split('\n').filter(ln => !!ln).map(ln => JSON.parse(ln));
+    const events = (
+      fs.readFileSync(this.logloc).toString()
+      .split('\n')
+      .filter(ln => !!ln)
+      .map(ln => JSON.parse(ln))
+      .map(ev => {
+        if (!this.hasValidTime(ev))
+          throw Error('Event in journal has non-Date time');
+        return ev;
+      })
+    );
 
     const now = Date.now();
     this.prevSweepTime = now - this.tolerance;
@@ -91,6 +106,9 @@ class Endog {
 
   */
   push(event) {
+
+    if (!this.hasValidTime(event))
+      throw Error('Rejecting event because time was not a Date');
 
     if (this.getTimestamp(event) <= this.prevSweepTime)
       throw Error('Rejecting event as too old');

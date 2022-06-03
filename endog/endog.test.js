@@ -135,7 +135,8 @@ describe('endog', () => {
       });
 
       it('throws if an event has no time', () => {
-        assert(false);
+        const ed = init();
+        assert.throws(() => ed.push({ s: 'a', time: 0/0 }));
       });
 
     });
