@@ -65,7 +65,7 @@ describe('endog', () => {
           },
           tolerance: 500,
 
-          logloc: `/tmp/endog-log-${Date.now()}.jsona`,
+          logloc: `/tmp/endog-log-${Date.now()}-${Math.random()}.jsona`,
 
           ...overrides,
         };
@@ -114,6 +114,14 @@ describe('endog', () => {
         const tolerance = 30;
         const ed = init({ tolerance });
         assert.throws(() => ed.push({ time: Date.now() - tolerance - 1 }));
+      });
+
+      it('rejects old events atomically', async () => {
+        const tolerance = 30;
+        const ed = init({ tolerance });
+        ed.push({ s: 'x', time: Date.now() });
+        assert.throws(() => ed.push({ s: 'x', time: Date.now() - tolerance - 1 }));
+        assert.deepEqual({ s: 'x' }, ed.state);
       });
 
       it('persists events', async () => {
