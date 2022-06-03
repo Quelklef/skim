@@ -134,6 +134,10 @@ describe('endog', () => {
         assert.deepEqual({ s: 'ab' }, ed2.state);
       });
 
+      it('throws if an event has no time', () => {
+        assert(false);
+      });
+
     });
 
 });
