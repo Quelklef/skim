@@ -164,7 +164,7 @@ class Endog {
     this.lstate = lstate;
     this.prevSweepTime = now;
     this.buffer.splice(0, toSweep.length);
-    fs.appendFileSync(this.logloc, toSweep.map(JSON.stringify).map(ln => ln + '\n').join('\n'));
+    fs.appendFileSync(this.logloc, toSweep.map(JSON.stringify).map(ln => ln + '\n').join(''));
   }
 
 
