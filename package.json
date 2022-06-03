@@ -1,0 +1,19 @@
+{
+  "name": "skim",
+  "version": "0.0.0",
+  "description": "",
+  "main": "skim.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Quelklef/skim.git"
+  },
+  "author": "Quelklef",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/Quelklef/skim/issues"
+  },
+  "homepage": "https://github.com/Quelklef/skim#readme"
+}
