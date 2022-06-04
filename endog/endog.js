@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { lines } = require('./lines.js');
 
 exports.Endog =
 class Endog {
@@ -63,24 +64,21 @@ class Endog {
     if (!fs.existsSync(this.logloc))
       fs.writeFileSync(this.logloc, '');
 
-    // This is not memory-efficient! Should read the file lazily
-    // Assumption: eventlog is in chronological order
-    const events = (
-      fs.readFileSync(this.logloc).toString()
-      .split('\n')
-      .filter(ln => !!ln)
-      .map(ln => JSON.parse(ln))
-      .map(ev => {
-        if (!this.hasValidTime(ev))
-          throw Error('Event in journal has non-Date time');
-        return ev;
-      })
-    );
+    const that = this;
+    const events = (function * () {
+      for (const line of lines(that.logloc)) {
+        if (!line) continue;
+        const ev = JSON.parse(line);
+        if (!that.hasValidTime(ev))
+          throw Error('Event in journal has non-Date time')
+        yield ev;
+      }
+    }());
 
     const now = Date.now();
     this.prevSweepTime = now - this.tolerance;
     const isRecent = ev => this.getTimestamp(ev) > this.prevSweepTime;
-    const [oldEvents, newEvents] = span(events, ev => !isRecent(ev));
+    const [oldEvents, newEvents] = spanIter(events, ev => !isRecent(ev));
 
     // Init state
     this.rstate = {};
@@ -194,18 +192,39 @@ function takeWhile(iterable, pred) {
 }
 
 
-function span(iterable, pred) {
-  const left = [];
-  const right = [];
+/*
 
-  let target = left;
+Let [left, right] = spanIter(iterable, pred)
 
-  for (const item of iterable) {
-    if (!pred(item)) target = right;
-    target.push(item);
+Then:
+1.  pred(x) for all x in left
+2. !pred(x) for all x in right
+3. [...left, ...right] equals [...iterable]
+
+NOTE: left MUST be exhausted before right is iterated.
+
+*/
+function spanIter(iterable, pred) {
+  const iterator = iterable[Symbol.iterator]();
+  let firstRight;
+
+  return [left(), right()];
+
+  function * left() {
+    for (const item of iterator) {
+      if (pred(item)) {
+        yield item;
+      } else {
+        firstRight = { item };
+        break;
+      }
+    }
   }
 
-  return [left, right];
+  function * right() {
+    if (firstRight) yield firstRight.item;
+    yield * iterator;
+  }
 }
 
 
@@ -260,4 +279,5 @@ function binaryInsertIdx(array, needle, keyf = (x => x)) {
   }
 }
 
-exports._testing = { takeWhile, span, binaryInsertIdx };
+
+exports._testing = { takeWhile, spanIter, binaryInsertIdx };

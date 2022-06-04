@@ -4,7 +4,7 @@ const fs = require('fs');
 
 const endog = require('./endog.js');
 const { Endog } = endog;
-const { takeWhile, span, binaryInsertIdx } = endog._testing;
+const { takeWhile, spanIter, binaryInsertIdx } = endog._testing;
 
 describe('endog', () => {
 
@@ -18,8 +18,13 @@ describe('endog', () => {
         });
       });
 
-      describe('span', () => {
+      describe('spanIter', () => {
         it('works', () => {
+          function span(it, pred) {
+            let [left, right] = spanIter(it, pred);
+            return [[...left], [...right]];
+          }
+
           assert.deepEqual(span([0, 1, 2, 3], x => x > 10), [[], [0, 1, 2, 3]]);
           assert.deepEqual(span([0, 1, 2, 3], x => x < 2), [[0, 1], [2, 3]]);
           assert.deepEqual(span([0, 1, 2, 3], x => x < 10), [[0, 1, 2, 3], []]);
